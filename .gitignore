@@ -1,0 +1,72 @@
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.rar
+*.zip
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.bak
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Node.js / Vite
+node_modules/
+dist/
+.dist/
+*.tgz
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+.project
+.classpath
+.c9/
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+*.sublime-workspace
+*.sublime-project
+.netbeans/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime / Logs
+logs/
+*.log
+.log
+
+# Debugging
+debug/
+profiler/
+
+# Build artifacts (frontend)
+.next/
+.nuxt/
+out/
+
+# Miscellaneous
+.cache/
+.grunt/
+tmp/
+temp/

@@ -1,0 +1,51 @@
+# Add this service to your existing docker-compose.yml under the 'services' section.
+# The 'oidc-service' replaces Keycloak for OIDC authentication.
+
+  oidc-service:
+    build:
+      context: ./oidc-service
+      dockerfile: Dockerfile
+    # Or use a pre-built image:
+    # image: your-registry/oidc-service:1.0.0
+    container_name: oidc-service
+    networks:
+      outline_network:
+        ipv4_address: 192.168.232.18
+    ports:
+      - "${OIDC_SERVICE_PORT:-8800}:8800"
+    extra_hosts:
+      - "postgres:192.168.232.13"
+    environment:
+      # Server
+      OIDC_PORT: 8800
+
+      # Database (same PostgreSQL as Keycloak)
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: keycloak
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      # OIDC Issuer URL (how Outline reaches this service)
+      OIDC_ISSUER: http://oidc.outline.xyz:10087
+
+      # JWT signing key (generate with: openssl rand -hex 32)
+      OIDC_JWT_SECRET: ${OIDC_JWT_SECRET:-a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2}
+
+      # Login page customization (optional)
+      OIDC_LOGIN_BG: ${OIDC_LOGIN_BG:-}
+      OIDC_LOGIN_BG_COLOR: ${OIDC_LOGIN_BG_COLOR:-#f0f2f5}
+      OIDC_LOGIN_LOGO: ${OIDC_LOGIN_LOGO:-}
+      OIDC_LOGIN_TITLE: ${OIDC_LOGIN_TITLE:-SSO Login}
+      OIDC_LOGIN_PRIMARY_COLOR: ${OIDC_LOGIN_PRIMARY_COLOR:-#1890ff}
+
+    # Traefik configuration (replaces Keycloak's route)
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.oidc.rule=Host(`oidc.outline.xyz`)"
+      - "traefik.http.routers.oidc.entrypoints=web"
+      - "traefik.http.services.oidc.loadbalancer.server.port=8800"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
