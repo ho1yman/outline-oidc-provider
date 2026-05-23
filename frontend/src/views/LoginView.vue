@@ -38,15 +38,65 @@
 
           <div class="form-group">
             <label for="password">密码</label>
-            <input
-              id="password"
-              v-model="form.password"
-              type="password"
-              placeholder="请输入密码"
-              autocomplete="current-password"
-              required
-              :disabled="loading"
-            />
+            <div class="password-field">
+              <input
+                id="password"
+                v-model="form.password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="请输入密码"
+                autocomplete="current-password"
+                required
+                :disabled="loading"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                :aria-label="showPassword ? '隐藏密码' : '显示密码'"
+                :title="showPassword ? '隐藏密码' : '显示密码'"
+                :disabled="loading"
+                @click="showPassword = !showPassword"
+              >
+                <svg
+                  v-if="showPassword"
+                  class="eye-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M3 3L21 21M10.58 10.58C10.21 10.95 10 11.46 10 12C10 13.1 10.9 14 12 14C12.54 14 13.05 13.79 13.42 13.42M9.88 5.09C10.57 4.89 11.28 4.78 12 4.78C16.5 4.78 20.34 8.06 21.5 12C21.07 13.45 20.25 14.74 19.16 15.75M14.12 18.91C13.43 19.11 12.72 19.22 12 19.22C7.5 19.22 3.66 15.94 2.5 12C3.11 9.92 4.47 8.15 6.31 6.99"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <svg
+                  v-else
+                  class="eye-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M2.5 12C3.66 8.06 7.5 4.78 12 4.78C16.5 4.78 20.34 8.06 21.5 12C20.34 15.94 16.5 19.22 12 19.22C7.5 19.22 3.66 15.94 2.5 12Z"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div class="form-options">
@@ -102,6 +152,7 @@ const form = reactive<LoginForm>({
 
 const loading = ref(false)
 const errorMsg = ref('')
+const showPassword = ref(false)
 const savedCredentials = ref<SavedCredential[]>([])
 const selectedSavedIdx = ref(-1)
 const realmName = ref('')
@@ -410,6 +461,54 @@ async function handleLogin() {
   cursor: not-allowed;
 }
 
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  width: 100%;
+  padding-right: 70px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: color-mix(in srgb, var(--md-sys-color-primary) 11%, white 89%);
+  color: var(--md-sys-color-primary);
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+}
+
+.password-toggle:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--md-sys-color-primary) 18%, white 82%);
+}
+
+.password-toggle:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.password-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.eye-icon {
+  width: 20px;
+  height: 20px;
+}
+
 .form-options {
   display: flex;
   flex-direction: column;
@@ -445,16 +544,13 @@ async function handleLogin() {
 }
 
 .login-btn {
-  min-height: 48px;
+  min-height: 52px;
   padding: 12px 18px;
   border: none;
-  border-radius: 999px;
-  color: var(--md-sys-color-on-primary);
-  background: linear-gradient(
-    160deg,
-    color-mix(in srgb, var(--md-sys-color-primary) 92%, white 8%) 0%,
-    color-mix(in srgb, var(--md-sys-color-primary) 76%, black 24%) 100%
-  );
+  border-radius: 16px;
+  color: #5f4b8b;
+  background: #b89df2;
+  border: 1px solid rgba(255, 255, 255, 0.45);
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -468,8 +564,8 @@ async function handleLogin() {
 
 .login-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: var(--md-sys-elevation-3);
-  filter: saturate(1.06);
+  box-shadow: 0 2px 6px rgba(29, 27, 32, 0.16), 0 1px 2px rgba(29, 27, 32, 0.1);
+  filter: brightness(1.03);
 }
 
 .login-btn:active:not(:disabled) {
@@ -508,6 +604,11 @@ async function handleLogin() {
 
   .form-group input {
     min-height: 52px;
+  }
+
+  .login-btn {
+    min-height: 50px;
+    border-radius: 14px;
   }
 }
 </style>
