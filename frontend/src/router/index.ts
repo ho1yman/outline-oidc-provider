@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '@/views/LoginView.vue'
+import SavedAccountPreview from '@/views/SavedAccountPreview.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -13,6 +14,11 @@ const router = createRouter({
       path: '/login',
       name: 'login-alt',
       component: LoginView
+    },
+    {
+      path: '/preview/saved-account-item',
+      name: 'saved-account-preview',
+      component: SavedAccountPreview
     },
     {
       path: '/:pathMatch(.*)*',

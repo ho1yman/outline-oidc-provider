@@ -37,3 +37,4 @@ oidc:
     logo-url: ${OIDC_LOGIN_LOGO:}
     title: ${OIDC_LOGIN_TITLE:SSO Login}
     primary-color: ${OIDC_LOGIN_PRIMARY_COLOR:#1890ff}
+    auto-login-enabled: ${OIDC_LOGIN_AUTO_LOGIN_ENABLED:true}

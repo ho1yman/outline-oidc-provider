@@ -32,6 +32,7 @@ export interface ThemeConfig {
   logoUrl: string
   title: string
   primaryColor: string
+  autoLoginEnabled?: boolean
 }
 
 export async function login(params: LoginParams): Promise<LoginResult> {

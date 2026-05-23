@@ -83,6 +83,7 @@ public class OidcController {
         theme.put("logoUrl", t.getLogoUrl());
         theme.put("title", t.getTitle());
         theme.put("primaryColor", t.getPrimaryColor());
+        theme.put("autoLoginEnabled", t.getAutoLoginEnabled());
         return ResponseEntity.ok(theme);
     }
 

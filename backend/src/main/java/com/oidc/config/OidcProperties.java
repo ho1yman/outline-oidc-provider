@@ -20,6 +20,7 @@ public class OidcProperties {
         private String logoUrl;
         private String title = "SSO Login";
         private String primaryColor = "#1890ff";
+        private Boolean autoLoginEnabled = true;
 
         public String getBackgroundImage() { return backgroundImage; }
         public void setBackgroundImage(String backgroundImage) { this.backgroundImage = backgroundImage; }
@@ -35,6 +36,9 @@ public class OidcProperties {
 
         public String getPrimaryColor() { return primaryColor; }
         public void setPrimaryColor(String primaryColor) { this.primaryColor = primaryColor; }
+
+        public Boolean getAutoLoginEnabled() { return autoLoginEnabled; }
+        public void setAutoLoginEnabled(Boolean autoLoginEnabled) { this.autoLoginEnabled = autoLoginEnabled; }
     }
 
     public String getIssuer() { return issuer; }

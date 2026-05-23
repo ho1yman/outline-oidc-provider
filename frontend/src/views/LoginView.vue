@@ -24,7 +24,6 @@
 
         <form @submit.prevent="handleLogin" class="login-form">
           <div class="form-group">
-            <label for="username">用户名</label>
             <input
               id="username"
               v-model="form.username"
@@ -37,7 +36,6 @@
           </div>
 
           <div class="form-group">
-            <label for="password">密码</label>
             <div class="password-field">
               <input
                 id="password"
@@ -99,23 +97,23 @@
             </div>
           </div>
 
-          <div class="form-options">
-            <label class="remember-me">
-              <input v-model="form.rememberMe" type="checkbox" />
-              <span>记住我</span>
-            </label>
-            <label class="auto-login" v-if="form.rememberMe">
-              <input v-model="form.autoLogin" type="checkbox" />
-              <span>下次自动登录</span>
-            </label>
-          </div>
-
           <div v-if="errorMsg" class="error-message">{{ errorMsg }}</div>
 
           <button type="submit" class="login-btn" :disabled="loading">
             <span v-if="loading" class="spinner"></span>
             <span v-else>登录</span>
           </button>
+
+          <div class="form-options">
+            <label class="remember-me">
+              <input v-model="form.rememberMe" type="checkbox" />
+              <span>记住我</span>
+            </label>
+            <label class="auto-login" v-if="form.rememberMe && autoLoginEnabled">
+              <input v-model="form.autoLogin" type="checkbox" />
+              <span>下次自动登录</span>
+            </label>
+          </div>
         </form>
       </div>
     </div>
@@ -156,6 +154,7 @@ const showPassword = ref(false)
 const savedCredentials = ref<SavedCredential[]>([])
 const selectedSavedIdx = ref(-1)
 const realmName = ref('')
+const autoLoginEnabled = ref(true)
 
 const theme = reactive<ThemeConfig>({
   backgroundImage: '',
@@ -186,6 +185,7 @@ onMounted(async () => {
   try {
     const config = await getThemeConfig()
     Object.assign(theme, config)
+    autoLoginEnabled.value = config.autoLoginEnabled !== false
     if (config.title) document.title = config.title
   } catch {
     // Use defaults
@@ -195,7 +195,7 @@ onMounted(async () => {
   loadSavedCredentials()
 
   // Check for auto-login
-  if (savedCredentials.value.length > 0) {
+  if (autoLoginEnabled.value && savedCredentials.value.length > 0) {
     const autoLoginCred = savedCredentials.value.find(c => {
       const stored = localStorage.getItem(`oidc_auto_${c.realm}_${c.username}`)
       return stored === 'true'
@@ -249,8 +249,10 @@ function saveCredentials() {
   localStorage.setItem('oidc_saved_credentials', JSON.stringify(savedCredentials.value))
 
   // Auto login flag
-  if (form.autoLogin) {
+  if (autoLoginEnabled.value && form.autoLogin) {
     localStorage.setItem(`oidc_auto_${realmName.value}_${form.username}`, 'true')
+  } else {
+    localStorage.removeItem(`oidc_auto_${realmName.value}_${form.username}`)
   }
 }
 
@@ -365,10 +367,10 @@ async function handleLogin() {
 
 .saved-accounts {
   margin-bottom: 20px;
-  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline) 36%, transparent);
+  border: 1px solid transparent;
   border-radius: 16px;
   overflow: hidden;
-  background: var(--md-sys-color-surface-container);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 92%, white 8%);
 }
 
 .saved-account-item {
@@ -378,7 +380,8 @@ async function handleLogin() {
   padding: 10px 14px;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
-  border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline) 10%, transparent);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 90%, white 10%);
 }
 
 .saved-account-item:last-child {
@@ -387,7 +390,7 @@ async function handleLogin() {
 
 .saved-account-item:hover,
 .saved-account-item.active {
-  background: color-mix(in srgb, var(--md-sys-color-primary) 16%, white 84%);
+  background: color-mix(in srgb, var(--md-sys-color-primary) 20%, white 80%);
 }
 
 .avatar {
@@ -406,44 +409,42 @@ async function handleLogin() {
 
 .saved-username {
   font-weight: 500;
-  color: var(--md-sys-color-on-surface);
+  color: #5f4b8b;
   flex: 1;
 }
 
 .saved-realm {
   font-size: 12px;
-  color: var(--md-sys-color-on-surface-variant);
+  color: #5f4b8b;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 4px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.form-group label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--md-sys-color-on-surface-variant);
-  padding-left: 4px;
+  gap: 0;
 }
 
 .form-group input {
   min-height: 56px;
   padding: 12px 16px;
-  border: 1px solid var(--md-sys-color-outline);
+  border: 1px solid transparent;
   border-radius: 16px;
   font-size: 15px;
   color: var(--md-sys-color-on-surface);
-  background: color-mix(in srgb, var(--md-sys-color-surface-container) 72%, white 28%);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 90%, white 10%);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   outline: none;
+}
+
+.form-group:first-child input {
+  border-bottom-left-radius: 1.6px;
+  border-bottom-right-radius: 1.6px;
 }
 
 .form-group input::placeholder {
@@ -451,9 +452,9 @@ async function handleLogin() {
 }
 
 .form-group input:focus {
-  border-color: var(--md-sys-color-primary);
+  border-color: transparent;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
-  background: #fff;
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 86%, white 14%);
 }
 
 .form-group input:disabled {
@@ -465,11 +466,13 @@ async function handleLogin() {
   position: relative;
   display: flex;
   align-items: center;
+  margin-top: -1px;
 }
 
 .password-field input {
   width: 100%;
   padding-right: 70px;
+  border-radius: 1.6px;
 }
 
 .password-toggle {
@@ -512,7 +515,9 @@ async function handleLogin() {
 .form-options {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  margin-top: 8px;
+  margin-bottom: 0;
 }
 
 .remember-me,
@@ -537,17 +542,19 @@ async function handleLogin() {
   padding: 12px 14px;
   background: color-mix(in srgb, var(--md-sys-color-error) 9%, white 91%);
   border: 1px solid color-mix(in srgb, var(--md-sys-color-error) 36%, transparent);
-  border-radius: 12px;
+  border-radius: 1.6px;
   color: var(--md-sys-color-error);
   font-size: 13px;
   text-align: center;
+  margin-top: 2px;
+  margin-bottom: 4px;
 }
 
 .login-btn {
   min-height: 52px;
   padding: 12px 18px;
   border: none;
-  border-radius: 16px;
+  border-radius: 14px;
   color: #5f4b8b;
   background: #b89df2;
   border: 1px solid rgba(255, 255, 255, 0.45);
@@ -560,6 +567,12 @@ async function handleLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 0;
+}
+
+.login-btn {
+  border-top-left-radius: 1.4px;
+  border-top-right-radius: 1.4px;
 }
 
 .login-btn:hover:not(:disabled) {
@@ -608,7 +621,13 @@ async function handleLogin() {
 
   .login-btn {
     min-height: 50px;
-    border-radius: 14px;
+    border-radius: 12px;
+    border-top-left-radius: 1.2px;
+    border-top-right-radius: 1.2px;
+  }
+
+  .login-form {
+    gap: 4px;
   }
 }
 </style>
