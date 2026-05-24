@@ -2,10 +2,9 @@
   <div class="login-wrapper" :style="wrapperStyle">
     <div class="login-container">
       <div class="login-card">
-        <div class="card-header">
+        <div class="card-header" :class="headerToneClass">
           <img v-if="theme.logoUrl" :src="theme.logoUrl" class="logo-img" alt="logo" />
           <h1 class="title">{{ theme.title }}</h1>
-          <p class="subtitle" v-if="realmName">租户：{{ realmName }}</p>
         </div>
 
         <div v-if="savedCredentials.length > 0" class="saved-accounts">
@@ -31,6 +30,7 @@
               placeholder="请输入用户名"
               autocomplete="username"
               required
+              maxlength="25"
               :disabled="loading"
             />
           </div>
@@ -44,7 +44,9 @@
                 placeholder="请输入密码"
                 autocomplete="current-password"
                 required
+                maxlength="25"
                 :disabled="loading"
+                @input="sanitizePasswordInput"
               />
               <button
                 type="button"
@@ -52,7 +54,15 @@
                 :aria-label="showPassword ? '隐藏密码' : '显示密码'"
                 :title="showPassword ? '隐藏密码' : '显示密码'"
                 :disabled="loading"
-                @click="showPassword = !showPassword"
+                @mousedown.prevent="showPassword = true"
+                @mouseup.prevent="showPassword = false"
+                @mouseleave="showPassword = false"
+                @touchstart.prevent="showPassword = true"
+                @touchend="showPassword = false"
+                @keydown.space.prevent="showPassword = true"
+                @keyup.space.prevent="showPassword = false"
+                @keydown.enter.prevent="showPassword = true"
+                @keyup.enter.prevent="showPassword = false"
               >
                 <svg
                   v-if="showPassword"
@@ -155,6 +165,7 @@ const savedCredentials = ref<SavedCredential[]>([])
 const selectedSavedIdx = ref(-1)
 const realmName = ref('')
 const autoLoginEnabled = ref(true)
+const headerBgColor = ref('#f2f4f8')
 
 const theme = reactive<ThemeConfig>({
   backgroundImage: '',
@@ -174,6 +185,23 @@ const wrapperStyle = computed(() => {
     style.backgroundPosition = 'center'
   }
   return style
+})
+
+const headerToneClass = computed(() => {
+  const hex = headerBgColor.value.replace('#', '')
+  const normalized = hex.length === 3
+    ? hex.split('').map(ch => ch + ch).join('')
+    : hex
+
+  if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
+    return 'is-dark'
+  }
+
+  const r = parseInt(normalized.slice(0, 2), 16)
+  const g = parseInt(normalized.slice(2, 4), 16)
+  const b = parseInt(normalized.slice(4, 6), 16)
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return luminance < 0.6 ? 'is-dark' : 'is-light'
 })
 
 onMounted(async () => {
@@ -264,6 +292,18 @@ function selectSavedAccount(idx: number) {
   selectedSavedIdx.value = idx
 }
 
+function sanitizePasswordInput(event: Event) {
+  const input = event.target as HTMLInputElement
+  // Allow only ASCII letters, digits, and half-width punctuation (no spaces).
+  const sanitized = input.value
+    .replace(/[^A-Za-z0-9!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/g, '')
+    .slice(0, 25)
+  if (sanitized !== input.value) {
+    input.value = sanitized
+  }
+  form.password = sanitized
+}
+
 async function handleLogin() {
   errorMsg.value = ''
   loading.value = true
@@ -326,17 +366,34 @@ async function handleLogin() {
   --md-sys-color-error: #ba1a1a;
   --md-sys-elevation-1: 0 1px 2px rgba(29, 27, 32, 0.14), 0 1px 3px 1px rgba(29, 27, 32, 0.08);
   --md-sys-elevation-3: 0 4px 8px 3px rgba(29, 27, 32, 0.12), 0 1px 3px rgba(29, 27, 32, 0.14);
-  background: color-mix(in srgb, var(--md-sys-color-surface) 88%, white 12%);
+  background:
+    linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.07) 38%,
+      rgba(255, 255, 255, 0.04) 100%
+    );
   border-radius: 28px;
   padding: 36px 28px 28px;
-  box-shadow: var(--md-sys-elevation-3);
-  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline) 24%, transparent);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px) saturate(112%);
+  -webkit-backdrop-filter: blur(6px) saturate(112%);
 }
 
 .card-header {
   text-align: center;
-  margin-bottom: 26px;
+  margin-bottom: 10px;
+  padding: 0;
+  border-radius: 16px;
+}
+
+.card-header.is-dark {
+  --header-text-main: #f5f8ff;
+  --header-text-sub: rgba(242, 247, 255, 0.9);
+}
+
+.card-header.is-light {
+  --header-text-main: #1b2330;
+  --header-text-sub: rgba(34, 44, 58, 0.85);
 }
 
 .logo-img {
@@ -348,9 +405,10 @@ async function handleLogin() {
   font-size: 1.65rem;
   line-height: 1.2;
   font-weight: 700;
-  color: var(--md-sys-color-on-surface);
+  color: var(--header-text-main, var(--md-sys-color-on-surface));
+  text-shadow: 0 1px 8px color-mix(in srgb, var(--header-text-main, #111) 18%, transparent);
   letter-spacing: 0.01em;
-  margin: 0 0 8px;
+  margin: 0;
 }
 
 .subtitle {
@@ -366,11 +424,11 @@ async function handleLogin() {
 }
 
 .saved-accounts {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   border: 1px solid transparent;
   border-radius: 16px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--md-sys-color-surface-container) 92%, white 8%);
+  overflow: visible;
+  background: transparent;
 }
 
 .saved-account-item {
@@ -378,19 +436,39 @@ async function handleLogin() {
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
+  position: relative;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
-  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline) 10%, transparent);
-  background: color-mix(in srgb, var(--md-sys-color-surface-container) 90%, white 10%);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.saved-account-item + .saved-account-item {
+  margin-top: -1px;
 }
 
 .saved-account-item:last-child {
   border-bottom: none;
 }
 
-.saved-account-item:hover,
+.saved-account-item:first-child {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.saved-account-item:last-child {
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.saved-account-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .saved-account-item.active {
-  background: color-mix(in srgb, var(--md-sys-color-primary) 20%, white 80%);
+  border-color: transparent;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 86%, white 14%);
 }
 
 .avatar {
@@ -421,7 +499,7 @@ async function handleLogin() {
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
 }
 
 .form-group {
@@ -437,7 +515,7 @@ async function handleLogin() {
   border-radius: 16px;
   font-size: 15px;
   color: var(--md-sys-color-on-surface);
-  background: color-mix(in srgb, var(--md-sys-color-surface-container) 90%, white 10%);
+  background: rgba(255, 255, 255, 0.12);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   outline: none;
 }
@@ -481,7 +559,7 @@ async function handleLogin() {
   top: 50%;
   transform: translateY(-50%);
   border: none;
-  background: color-mix(in srgb, var(--md-sys-color-primary) 11%, white 89%);
+  background: color-mix(in srgb, var(--md-sys-color-primary) 11%, rgba(255, 255, 255, 0) 89%);
   color: var(--md-sys-color-primary);
   width: 36px;
   height: 36px;
@@ -526,16 +604,36 @@ async function handleLogin() {
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: var(--md-sys-color-on-surface-variant);
+  color: #ffffff;
   cursor: pointer;
   user-select: none;
 }
 
+.remember-me span,
+.auto-login span {
+  text-shadow: 0 1px 6px rgba(119, 0, 146, 0.929);
+}
+
 .remember-me input,
 .auto-login input {
-  width: 16px;
-  height: 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #7b57d1;
+  background: #ffffff;
+  display: inline-block;
+  position: relative;
   cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.remember-me input:checked,
+.auto-login input:checked {
+  background: #2fbf5b;
+  border-color: #7b57d1;
+  box-shadow: inset 0 0 0 2px #2fbf5b;
 }
 
 .error-message {
@@ -567,10 +665,7 @@ async function handleLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 0;
-}
-
-.login-btn {
+  margin-top: -1px;
   border-top-left-radius: 1.4px;
   border-top-right-radius: 1.4px;
 }
@@ -627,7 +722,7 @@ async function handleLogin() {
   }
 
   .login-form {
-    gap: 4px;
+    gap: 0;
   }
 }
 </style>

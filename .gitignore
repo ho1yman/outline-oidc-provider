@@ -65,6 +65,9 @@ profiler/
 .nuxt/
 out/
 
+# Maven dependency cache (pre-downloaded for Docker builds)
+maven-cache/
+
 # Miscellaneous
 .cache/
 .grunt/

@@ -8,6 +8,8 @@ RUN npm run build
 FROM maven:3.9-eclipse-temurin-17 AS backend-build
 WORKDIR /app/backend
 COPY backend/pom.xml .
+# Pre-populate from local cache (run ./download-maven-deps.sh first to create maven-cache/)
+COPY maven-cache /root/.m2
 RUN mvn dependency:go-offline -B
 COPY backend/src ./src
 COPY --from=frontend-build /app/frontend/dist /app/frontend/dist
