@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '@/views/LoginView.vue'
+import LoginViewTemp from '@/views/LoginViewTemp.vue'
 import SavedAccountPreview from '@/views/SavedAccountPreview.vue'
 
 const router = createRouter({
@@ -9,6 +10,11 @@ const router = createRouter({
       path: '/',
       name: 'login',
       component: LoginView
+    },
+    {
+      path: '/temp',
+      name: 'login-temp',
+      component: LoginViewTemp
     },
     {
       path: '/login',

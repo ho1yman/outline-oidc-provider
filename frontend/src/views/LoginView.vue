@@ -1,5 +1,11 @@
 <template>
   <div class="login-wrapper" :style="wrapperStyle">
+    <video
+      v-if="isVideoBackground"
+      :src="theme.backgroundImage"
+      autoplay loop muted playsinline
+      class="bg-video"
+    ></video>
     <div class="login-container">
       <div class="login-card">
         <div class="card-header" :class="headerToneClass">
@@ -171,20 +177,29 @@ const theme = reactive<ThemeConfig>({
   backgroundImage: '',
   backgroundColor: '#f0f2f5',
   logoUrl: '',
-  title: '登录到 OutlineWiki',
+  title: '登录 OutlineWiki',
   primaryColor: '#1890ff'
 })
 
 const wrapperStyle = computed(() => {
-  const style: Record<string, string> = {
-    background: theme.backgroundColor
-  }
-  if (theme.backgroundImage) {
+  const style: Record<string, string> = {}
+  if (isVideoBackground.value) {
+    // Video mode: no opaque background so the video shows through.
+    // Scoped CSS radial gradients overlay on top of the video.
+  } else if (theme.backgroundImage) {
+    style.background = theme.backgroundColor
     style.backgroundImage = `url('${theme.backgroundImage}')`
     style.backgroundSize = 'cover'
     style.backgroundPosition = 'center'
+  } else {
+    style.backgroundColor = theme.backgroundColor
   }
   return style
+})
+
+const videoExtensions = /\.(mp4|webm|ogg|mov)(\?.*)?$/i
+const isVideoBackground = computed(() => {
+  return !!theme.backgroundImage && videoExtensions.test(theme.backgroundImage)
 })
 
 const headerToneClass = computed(() => {
@@ -339,18 +354,33 @@ async function handleLogin() {
 
 <style scoped>
 .login-wrapper {
+  position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  overflow: hidden;
   transition: background 0.3s ease;
   background-image:
     radial-gradient(circle at 8% 10%, rgba(103, 80, 164, 0.14) 0, rgba(103, 80, 164, 0) 40%),
     radial-gradient(circle at 92% 90%, rgba(56, 142, 60, 0.1) 0, rgba(56, 142, 60, 0) 38%);
 }
 
+.bg-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
 .login-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 440px;
 }
