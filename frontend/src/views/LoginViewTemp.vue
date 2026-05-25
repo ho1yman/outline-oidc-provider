@@ -19,7 +19,7 @@
               placeholder="请输入用户名"
               autocomplete="username"
               required
-              maxlength="25"
+              maxlength="28"
               :disabled="loading"
             />
           </div>
@@ -32,7 +32,7 @@
                 placeholder="请输入密码"
                 autocomplete="current-password"
                 required
-                maxlength="25"
+                maxlength="28"
                 :disabled="loading"
               />
               <button

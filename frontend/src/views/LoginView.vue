@@ -36,7 +36,7 @@
               placeholder="请输入用户名"
               autocomplete="username"
               required
-              maxlength="25"
+              maxlength="28"
               :disabled="loading"
             />
           </div>
@@ -50,7 +50,7 @@
                 placeholder="请输入密码"
                 autocomplete="current-password"
                 required
-                maxlength="25"
+                maxlength="28"
                 :disabled="loading"
                 @input="sanitizePasswordInput"
               />
@@ -312,7 +312,7 @@ function sanitizePasswordInput(event: Event) {
   // Allow only ASCII letters, digits, and half-width punctuation (no spaces).
   const sanitized = input.value
     .replace(/[^A-Za-z0-9!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/g, '')
-    .slice(0, 25)
+    .slice(0, 28)
   if (sanitized !== input.value) {
     input.value = sanitized
   }
